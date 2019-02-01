@@ -1,0 +1,227 @@
+//
+//  main.c
+//  program 5
+//
+//  Created by Emily Vu on 7/23/18.
+//  Copyright © 2018 Emily Vu. All rights reserved.
+//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define PEOPLE 3
+
+// struct for employee
+struct Employee
+{
+    char name[20];
+    float rate;
+    float hours;
+    float gross;
+    float base;
+    float ot;
+    float taxes;
+    float taxesPaid;
+    float net;
+};
+
+struct employee *e[PEOPLE];
+
+// menu to add employee, edit employee, print employee payroll, print all employees, and exit
+int menu()
+{
+    int userChoice;
+    printf("\n******** EMPLOYEE PAYROLL **********");
+    printf("\n1. Add Employee\n2. Edit Employee\n3. Print Employee Payroll\n4. Print All Employees\n5. Exit\n");
+    scanf("%d", &userChoice);
+    if(userChoice == 5)
+    {
+        printf("\nExited Program.\n");
+        return 0;
+    }
+    return userChoice;
+    
+}
+
+// prompts user for mode of input (file or keyboard)
+int inputMode()
+{
+    int inputChoice;
+    printf("Input mode:\n1. File\n2. Keyboard\n");
+    scanf("%d", &inputChoice);
+    return inputChoice;
+}
+
+// prompts user for name, rate, hours
+float prompt(struct Employee *e)
+{
+    printf("Enter name: ");
+    scanf(" %s", e->name);
+    if (e->name[0]== '-' && e->name[1] == '1')
+    {
+        return 0;
+    }
+    
+    printf("Enter hourly rate: ");
+    scanf("%f", &e->rate);
+    if (e->rate == -1.0f)
+    {
+        return 0;
+    }
+    
+    printf("Enter hours worked: ");
+    scanf("%f", &e->hours);
+    if (e->hours == -1.0f)
+    {
+        return 0;
+    }
+    
+    return 1;
+}
+
+// calculates gross, base, overtime, net, and total pay
+float pay(struct Employee *e)
+{
+    float total = 0;
+    
+    if (e->hours <= 40)
+    {
+        e->gross = e->hours * e->rate;
+        e->base = e->hours * e->rate;
+        e->ot = 0;
+    }
+    else if (e->hours >= 40)
+    {
+        e->gross = (40 * e->rate) + (e->hours - 40) * (1.5 * e->rate);
+        e->base = (40 * e->rate);
+        e->ot = (e->hours - 40) * (1.5 * e->rate);
+    }
+    
+    e->net = e->gross - e->taxes;
+    printf("Net pay: $%.2f\n", e->net);
+    
+    total = e->base + e->ot;
+    return total = 0.2*total;
+}
+
+// calculates taxes paid
+float taxesPaid(struct Employee *e)
+{
+    e->taxes = e->gross * .2f;
+    printf("Taxes paid: $%.2f\n", e->taxes);
+    return e->taxes;
+}
+
+// prints name, gross, base, overtime, net, and taxes paid
+void printInfo(char *name, float *gross, float *base, float *ot, float *net, float *taxes)
+{
+    printf("\nPay to: %s", name);
+    printf("\nGross pay: $%.2f", *gross);
+    printf("\nBase pay: $%.2f", *base);
+    printf("\nOvertime pay: $%.2f", *ot);
+    printf("\nNet pay: $%.2f", *net);
+    printf("\nTaxes paid: $%.2f", taxesPaid);
+    printf("\n\n");
+    
+}
+
+// calculates total paid to all employees
+void totalPay(struct Employee *e)
+{
+    int i;
+    float net[PEOPLE];
+    float total = 0;
+    
+    for (i= 0; i < PEOPLE; i++)
+    {
+        net[i] = pay(&e[i]);
+        total += net[i];
+    }
+    printf("\n\nTotal paid to all employees: $%.2f\n", total);
+}
+
+int main()
+{
+    struct Employee e[PEOPLE];
+    float net[PEOPLE];
+    float total = 0;
+    int userChoice;
+    int i;
+    char fileName[25];
+    FILE *file;
+    
+    // two cases: load data onto file or edit data from keyboard and load into terminal
+    switch (inputMode()){
+        case 1:
+            printf("Text file name: ");
+            scanf("%s", fileName);
+            printf("\n");
+            file = fopen(strcat(fileName, ".txt"), "w");
+            while (1){
+                
+                for (i= 0; i < PEOPLE; i++){
+                    
+                    prompt(&e[i]);
+                    net[i] = pay(&e[i]);
+    
+                    taxesPaid(&e[i]);
+                    
+                    printInfo(e[i].name, &e[i].gross, &e[i].base, &e[i].ot, &e[i].net, &e[i].taxes);
+                    
+                    total += net[i];
+                }
+                fprintf(file,"\n\nTotal paid to all employees: $%.2f\n", total);
+                break;
+            }
+            break;
+            
+        case 2:
+            while (1) {
+                int value = menu();
+                
+                if(value == 0){
+                break;
+                }else if (value == 1){
+                    for (i = 0 ; i < PEOPLE; i++){
+                        prompt(&e[i]);
+                    }
+                }else if (value == 2){
+                    printf("\nWhich employee would you like to edit?\n");
+                    for (i = 0; i < PEOPLE; i++){
+                        printf("\n%d. %s", i+1, e[i].name);
+                    }
+                    printf("\n");
+                    scanf("%d", &userChoice);
+                    prompt(&e[userChoice]);
+                }else if (value == 3){
+                    printf("\nWhich employee info would you like to print?\n");
+                    for( i = 0; i < PEOPLE; i ++){
+                        printf("\n%d. %s", i+1, e[i].name);
+                    }
+                    printf("\n");
+                    scanf("%d", &userChoice);
+                    printInfo(e[userChoice].name, &e[userChoice].gross, &e[userChoice].base, &e[userChoice].ot, &e[userChoice].net, &e[userChoice].taxes);
+                }else if (value == 4){
+                
+                    for (i= 0; i < PEOPLE; i++){
+                        printInfo(e[i].name, &e[i].gross, &e[i].base, &e[i].ot, &e[i].net, &e[i].taxes);
+                    }
+                    for (i= 0; i < PEOPLE; i++){
+                        
+                        prompt(&e[i]);
+                        net[i] = pay(&e[i]);
+                        e[i].net = net[i];
+                        
+                        printInfo(e[i].name, &e[i].gross, &e[i].base, &e[i].ot, &e[i].net, &e[i].taxes);
+                        
+                        total += net[i];
+                    }
+                    printf("\n\nTotal paid to all employees: $%.2f\n", total);
+                }
+            }
+        }
+    
+    fclose(file);
+    system( "read -n 1 -s -p \"Press any key to continue...\"" );
+    return 0;
+}
